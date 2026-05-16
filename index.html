@@ -1,320 +1,649 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Easy Builder - My Post</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>The Easy Builder · 习惯改造帖 | 精准填空版</title>
     <style>
-        /* 核心字体与字号设置调整为 24px */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: "Times New Roman", Times, serif;
             font-size: 24px;
-            line-height: 1.8;
-            background-color: #f4f7f6;
-            color: #333;
-            padding: 20px;
-            margin: 0;
+            line-height: 1.7;
+            background: #eef2f7;
+            color: #1e2f3e;
+            padding: 28px 20px;
         }
-        .container {
-            max-width: 1000px; /* 稍微加宽容器，适应不缩短的横线 */
+
+        /* 主容器 */
+        .post-container {
+            max-width: 1100px;
             margin: 0 auto;
-            background: #fff;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            background: #ffffff;
+            border-radius: 40px;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.12);
+            padding: 40px 36px;
+            transition: all 0.2s;
         }
-        h2 {
+
+        h1 {
             text-align: center;
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 10px;
-            margin-bottom: 30px;
-        }
-        
-        /* --- 核心排版防御区 --- */
-        .solid-block {
-            display: inline-block; 
-            white-space: nowrap; /* 绑定横线与句号，绝不断行 */
-        }
-        .input-group {
-            position: relative;
+            font-size: 32px;
+            font-weight: 600;
+            color: #1f4e6e;
+            border-bottom: 3px solid #3498db;
             display: inline-block;
-            white-space: normal; 
+            width: auto;
+            margin: 0 auto 36px auto;
+            padding-bottom: 12px;
+            letter-spacing: -0.3px;
         }
-        input[type="text"] {
+
+        .title-wrap {
+            text-align: center;
+        }
+
+        /* 关键样式：每一句使用 flex 内联包装，确保输入框和句号完美对齐 */
+        .sentence-piece {
+            display: inline-flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 4px 8px;
+            vertical-align: middle;
+            margin: 0 2px;
+        }
+
+        /* 输入框容器：相对定位用于参考，但下拉菜单将用 JS 动态绝对定位（更稳定） */
+        .input-wrapper {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .input-field {
             font-family: "Times New Roman", Times, serif;
-            font-size: 24px; /* 字号同步 */
-            color: #c0392b; 
+            font-size: 24px;
+            background-color: #fef9ef;
             border: none;
             border-bottom: 2px dashed #3498db;
-            background-color: #fcfcfc;
-            padding: 0 5px;
-            margin: 0 2px;
-            width: 280px; /* 恢复并加长横线，确保内容完整显示 */
+            padding: 6px 12px;
+            width: 290px;
             text-align: center;
+            color: #c03b2b;
             outline: none;
+            transition: all 0.2s;
+            border-radius: 18px 18px 8px 8px;
             cursor: pointer;
-            transition: border-bottom-color 0.3s;
-        }
-        input[type="text"]:focus {
-            border-bottom: 2px solid #e74c3c;
-            background-color: #fff;
+            font-weight: 500;
         }
 
-        /* 智能弹窗/下拉菜单样式 */
-        .suggestions-box {
-            display: none; 
-            position: absolute;
-            top: 100%;
-            left: 0; /* 严格左对齐，防止跑偏 */
-            background-color: #fff;
-            border: 1px solid #bdc3c7;
-            border-radius: 8px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
-            z-index: 9999; 
-            width: 360px; 
-            max-height: 300px;
+        .input-field:focus {
+            border-bottom: 3px solid #e67e22;
+            background: #fffaf2;
+            cursor: text;
+        }
+
+        .input-field[readonly] {
+            cursor: pointer;
+            background-color: #fef5e3;
+        }
+
+        /* 标点符号 (句号/逗号) 专用样式：完美垂直居中 */
+        .punctuation {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 500;
+            color: #2c3e50;
+            line-height: 1;
+            margin-left: 2px;
+            margin-right: 2px;
+        }
+
+        /* 段落间距 */
+        .para {
+            margin-bottom: 28px;
+            line-height: 1.9;
+        }
+
+        strong.tag {
+            background: #e9f0f5;
+            padding: 2px 12px;
+            border-radius: 32px;
+            font-weight: 700;
+            color: #1f6392;
+            margin-right: 8px;
+            font-size: 24px;
+        }
+
+        /* 全局动态下拉菜单 (动态生成在 body 中，绝对定位) */
+        .floating-suggestions {
+            position: fixed;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 18px 32px rgba(0, 0, 0, 0.2);
+            border: 1px solid #d4dee8;
+            z-index: 20000;
+            width: 340px;
+            max-height: 340px;
             overflow-y: auto;
-            margin-top: 5px;
-            text-align: left; 
+            backdrop-filter: blur(0px);
+            transition: none;
+            display: none;
         }
-        .suggestion-item {
-            padding: 10px 15px;
-            font-size: 20px; 
-            border-bottom: 1px solid #ecf0f1;
+
+        .suggest-list {
+            list-style: none;
+            margin: 0;
+            padding: 8px 0;
+        }
+
+        .suggest-item {
+            padding: 12px 18px;
             cursor: pointer;
-            transition: background-color 0.2s;
-            line-height: 1.4;
+            transition: background 0.12s;
+            border-bottom: 1px solid #eff3f8;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
-        .suggestion-item:last-child { border-bottom: none; }
-        .suggestion-item:hover { background-color: #ebf5fb; }
-        .eng-text { font-weight: bold; color: #2980b9; display: block;}
-        .chn-text { font-size: 18px; color: #7f8c8d; }
 
-        /* 按钮与结果区 */
-        .btn-container {
-            text-align: center; margin-top: 40px; display: flex; justify-content: center; gap: 20px;
+        .suggest-item:last-child {
+            border-bottom: none;
         }
-        button {
-            font-family: "Times New Roman", Times, serif; font-size: 22px; padding: 12px 30px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; transition: opacity 0.3s;
-        }
-        button:hover { opacity: 0.8; }
-        .btn-generate { background-color: #27ae60; }
-        .btn-reset { background-color: #95a5a6; }
-        .btn-copy { background-color: #3498db; margin-top: 15px; }
 
-        #result-area {
-            display: none; margin-top: 40px; padding: 25px; background-color: #fdfefe; border: 2px solid #f1c40f; border-radius: 10px;
+        .suggest-item:hover {
+            background-color: #eaf4ff;
         }
-        #final-text { white-space: pre-wrap; margin-bottom: 20px; }
+
+        .suggest-eng {
+            font-weight: 700;
+            color: #1f5e8c;
+            font-size: 20px;
+        }
+
+        .suggest-chs {
+            font-size: 15px;
+            color: #6c7e9e;
+        }
+
+        .type-custom {
+            border-top: 1px solid #e2e8f0;
+            margin-top: 6px;
+        }
+
+        /* 按钮区 */
+        .button-group {
+            text-align: center;
+            margin-top: 50px;
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            font-family: "Times New Roman", Times, serif;
+            font-size: 22px;
+            padding: 12px 32px;
+            border: none;
+            border-radius: 60px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+        }
+        .btn:hover { transform: scale(0.96); opacity: 0.9; }
+        .btn-generate { background-color: #2a7a3a; }
+        .btn-reset { background-color: #7f8c8d; }
+        .btn-copy { background-color: #2c7da0; display: inline-block; margin-top: 12px; }
+
+        .result-card {
+            display: none;
+            margin-top: 48px;
+            background: #fef9ef;
+            border-radius: 32px;
+            border-left: 12px solid #f4b942;
+            padding: 28px 32px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        }
+
+        .final-post {
+            font-size: 24px;
+            white-space: pre-wrap;
+            line-height: 1.7;
+            background: #ffffffdb;
+            padding: 24px;
+            border-radius: 28px;
+            margin-bottom: 20px;
+            font-family: "Times New Roman", Times, serif;
+        }
+
+        @media (max-width: 680px) {
+            .post-container { padding: 24px 18px; }
+            .input-field { width: 200px; font-size: 20px; }
+            .floating-suggestions { width: 280px; max-width: 90vw; }
+            .suggest-eng { font-size: 17px; }
+            .btn { font-size: 18px; padding: 8px 20px; }
+            .final-post { font-size: 20px; }
+            .punctuation { font-size: 24px; }
+        }
     </style>
 </head>
 <body>
-
-<div class="container">
-    <h2>📝 The Easy Builder - My Post</h2>
+<div class="post-container">
+    <div class="title-wrap"><h1>📝 The Easy Builder · My Post</h1></div>
     
-    <div id="builder-form">
-        <p>
-            <strong>[S/T]</strong> I used to suffer from <span class="solid-block"><span class="input-group">
-                <input type="text" id="blank1" placeholder="Type / select" onclick="showSuggestions('box1')" readonly>
-                <div class="suggestions-box" id="box1">
-                    <div class="suggestion-item" onclick="selectWord('blank1', 'box1', 'being under high pressure')"><span class="eng-text">being under high pressure</span><span class="chn-text">承受巨大压力</span></div>
-                    <div class="suggestion-item" onclick="selectWord('blank1', 'box1', 'staying up late')"><span class="eng-text">staying up late</span><span class="chn-text">熬夜</span></div>
-                    <div class="suggestion-item" onclick="selectWord('blank1', 'box1', 'a lack of focus')"><span class="eng-text">a lack of focus</span><span class="chn-text">注意力不集中</span></div>
-                    <div class="suggestion-item" onclick="enableTyping('blank1', 'box1')"><span class="eng-text">✏️ Type my own words</span><span class="chn-text">自己输入</span></div>
-                </div>
-            </span>.</span>
+    <!-- 填空表单区域：完全重构，保证输入框和标点行内对齐且不断行 -->
+    <div id="builderForm">
+        <!-- 段落 S/T -->
+        <div class="para">
+            <strong class="tag">[S/T]</strong> 
+            <span class="sentence-piece">I used to suffer from</span>
+            <span class="input-wrapper" data-for="blank1">
+                <input type="text" id="blank1" class="input-field" placeholder="Type / select" readonly data-orig-placeholder="Type / select">
+            </span>
+            <span class="punctuation">.</span>
             <br>
-            I decided to change my bad habit of <span class="solid-block"><span class="input-group">
-                <input type="text" id="blank2" placeholder="Type / select" onclick="showSuggestions('box2')" readonly>
-                <div class="suggestions-box" id="box2">
-                    <div class="suggestion-item" onclick="selectWord('blank2', 'box2', 'eating junk food')"><span class="eng-text">eating junk food</span><span class="chn-text">吃垃圾食品</span></div>
-                    <div class="suggestion-item" onclick="selectWord('blank2', 'box2', 'sleeping too late')"><span class="eng-text">sleeping too late</span><span class="chn-text">太晚睡</span></div>
-                    <div class="suggestion-item" onclick="selectWord('blank2', 'box2', 'playing games all night')"><span class="eng-text">playing games all night</span><span class="chn-text">通宵打游戏</span></div>
-                    <div class="suggestion-item" onclick="enableTyping('blank2', 'box2')"><span class="eng-text">✏️ Type my own words</span><span class="chn-text">自己输入</span></div>
-                </div>
-            </span>.</span>
-        </p>
+            <span class="sentence-piece">I decided to change my bad habit of</span>
+            <span class="input-wrapper" data-for="blank2">
+                <input type="text" id="blank2" class="input-field" placeholder="Type / select" readonly>
+            </span>
+            <span class="punctuation">.</span>
+        </div>
 
-        <p>
-            <strong>[A]</strong> My cue was <span class="solid-block"><span class="input-group">
-                <input type="text" id="blank3" placeholder="Type / select" onclick="showSuggestions('box3')" readonly>
-                <div class="suggestions-box" id="box3">
-                    <div class="suggestion-item" onclick="selectWord('blank3', 'box3', 'being in a bad mood')"><span class="eng-text">being in a bad mood</span><span class="chn-text">心情糟糕</span></div>
-                    <div class="suggestion-item" onclick="selectWord('blank3', 'box3', 'feeling stressed out')"><span class="eng-text">feeling stressed out</span><span class="chn-text">感觉压力大</span></div>
-                    <div class="suggestion-item" onclick="selectWord('blank3', 'box3', 'feeling anxious')"><span class="eng-text">feeling anxious</span><span class="chn-text">感觉焦虑</span></div>
-                    <div class="suggestion-item" onclick="enableTyping('blank3', 'box3')"><span class="eng-text">✏️ Type my own words</span><span class="chn-text">自己输入</span></div>
-                </div>
-            </span>.</span>
+        <!-- 段落 A -->
+        <div class="para">
+            <strong class="tag">[A]</strong> 
+            <span class="sentence-piece">My cue was</span>
+            <span class="input-wrapper" data-for="blank3">
+                <input type="text" id="blank3" class="input-field" placeholder="Type / select" readonly>
+            </span>
+            <span class="punctuation">.</span>
             <br>
-            Whenever I <span class="solid-block"><span class="input-group">
-                <input type="text" id="blank4" placeholder="Type / select" onclick="showSuggestions('box4')" readonly>
-                <div class="suggestions-box" id="box4">
-                    <div class="suggestion-item" onclick="selectWord('blank4', 'box4', 'faced a difficult challenge')"><span class="eng-text">faced a difficult challenge</span><span class="chn-text">面对困难挑战</span></div>
-                    <div class="suggestion-item" onclick="selectWord('blank4', 'box4', 'had exams')"><span class="eng-text">had exams</span><span class="chn-text">有考试</span></div>
-                    <div class="suggestion-item" onclick="selectWord('blank4', 'box4', 'stayed at home')"><span class="eng-text">stayed at home</span><span class="chn-text">待在家</span></div>
-                    <div class="suggestion-item" onclick="enableTyping('blank4', 'box4')"><span class="eng-text">✏️ Type my own words</span><span class="chn-text">自己输入</span></div>
-                </div>
-            </span>,</span> 
-            my routine was <span class="solid-block"><span class="input-group">
-                <input type="text" id="blank5" placeholder="Type / select" onclick="showSuggestions('box5')" readonly>
-                <div class="suggestions-box" id="box5">
-                    <div class="suggestion-item" onclick="selectWord('blank5', 'box5', 'playing on my phone')"><span class="eng-text">playing on my phone</span><span class="chn-text">玩手机</span></div>
-                    <div class="suggestion-item" onclick="selectWord('blank5', 'box5', 'eating snacks')"><span class="eng-text">eating snacks</span><span class="chn-text">吃零食</span></div>
-                    <div class="suggestion-item" onclick="selectWord('blank5', 'box5', 'burying myself in games')"><span class="eng-text">burying myself in games</span><span class="chn-text">玩电脑</span></div>
-                    <div class="suggestion-item" onclick="enableTyping('blank5', 'box5')"><span class="eng-text">✏️ Type my own words</span><span class="chn-text">自己输入</span></div>
-                </div>
-            </span>.</span>
+            <span class="sentence-piece">Whenever I</span>
+            <span class="input-wrapper" data-for="blank4">
+                <input type="text" id="blank4" class="input-field" placeholder="Type / select" readonly>
+            </span>
+            <span class="punctuation">,</span>
+            <span class="sentence-piece">my routine was</span>
+            <span class="input-wrapper" data-for="blank5">
+                <input type="text" id="blank5" class="input-field" placeholder="Type / select" readonly>
+            </span>
+            <span class="punctuation">.</span>
             <br>
-            I stopped doing that and replaced it with <span class="solid-block"><span class="input-group">
-                <input type="text" id="blank6" placeholder="Type / select" onclick="showSuggestions('box6')" readonly>
-                <div class="suggestions-box" id="box6">
-                    <div class="suggestion-item" onclick="selectWord('blank6', 'box6', 'working out regularly')"><span class="eng-text">working out regularly</span><span class="chn-text">经常锻炼</span></div>
-                    <div class="suggestion-item" onclick="selectWord('blank6', 'box6', 'taking up reading')"><span class="eng-text">taking up reading</span><span class="chn-text">开始阅读</span></div>
-                    <div class="suggestion-item" onclick="selectWord('blank6', 'box6', 'practicing meditation')"><span class="eng-text">practicing meditation</span><span class="chn-text">练习冥想</span></div>
-                    <div class="suggestion-item" onclick="enableTyping('blank6', 'box6')"><span class="eng-text">✏️ Type my own words</span><span class="chn-text">自己输入</span></div>
-                </div>
-            </span>.</span>
+            <span class="sentence-piece">I stopped doing that and replaced it with</span>
+            <span class="input-wrapper" data-for="blank6">
+                <input type="text" id="blank6" class="input-field" placeholder="Type / select" readonly>
+            </span>
+            <span class="punctuation">.</span>
             <br>
-            Instead of <span class="solid-block"><span class="input-group">
-                <input type="text" id="blank7" placeholder="Type / select" onclick="showSuggestions('box7')" readonly>
-                <div class="suggestions-box" id="box7">
-                    <div class="suggestion-item" onclick="selectWord('blank7', 'box7', 'putting off my homework')"><span class="eng-text">putting off my homework</span><span class="chn-text">推迟作业</span></div>
-                    <div class="suggestion-item" onclick="selectWord('blank7', 'box7', 'eating junk food')"><span class="eng-text">eating junk food</span><span class="chn-text">吃垃圾食品</span></div>
-                    <div class="suggestion-item" onclick="selectWord('blank7', 'box7', 'complaining about life')"><span class="eng-text">complaining about life</span><span class="chn-text">抱怨生活</span></div>
-                    <div class="suggestion-item" onclick="enableTyping('blank7', 'box7')"><span class="eng-text">✏️ Type my own words</span><span class="chn-text">自己输入</span></div>
-                </div>
-            </span>,</span> 
-            I now <span class="solid-block"><span class="input-group">
-                <input type="text" id="blank8" placeholder="Type / select" onclick="showSuggestions('box8')" readonly>
-                <div class="suggestions-box" id="box8">
-                    <div class="suggestion-item" onclick="selectWord('blank8', 'box8', 'go jogging')"><span class="eng-text">go jogging</span><span class="chn-text">去慢跑</span></div>
-                    <div class="suggestion-item" onclick="selectWord('blank8', 'box8', 'put away my phone')"><span class="eng-text">put away my phone</span><span class="chn-text">放下手机</span></div>
-                    <div class="suggestion-item" onclick="selectWord('blank8', 'box8', 'stick to a healthy schedule')"><span class="eng-text">stick to a healthy schedule</span><span class="chn-text">坚持健康的作息</span></div>
-                    <div class="suggestion-item" onclick="enableTyping('blank8', 'box8')"><span class="eng-text">✏️ Type my own words</span><span class="chn-text">自己输入</span></div>
-                </div>
-            </span>.</span>
-        </p>
+            <span class="sentence-piece">Instead of</span>
+            <span class="input-wrapper" data-for="blank7">
+                <input type="text" id="blank7" class="input-field" placeholder="Type / select" readonly>
+            </span>
+            <span class="punctuation">,</span>
+            <span class="sentence-piece">I now</span>
+            <span class="input-wrapper" data-for="blank8">
+                <input type="text" id="blank8" class="input-field" placeholder="Type / select" readonly>
+            </span>
+            <span class="punctuation">.</span>
+        </div>
 
-        <p>
-            <strong>[R]</strong> The reward is fantastic. I feel more <span class="solid-block"><span class="input-group">
-                <input type="text" id="blank9" placeholder="Type / select" onclick="showSuggestions('box9')" readonly>
-                <div class="suggestions-box" id="box9">
-                    <div class="suggestion-item" onclick="selectWord('blank9', 'box9', 'confident')"><span class="eng-text">confident</span><span class="chn-text">自信</span></div>
-                    <div class="suggestion-item" onclick="selectWord('blank9', 'box9', 'productive')"><span class="eng-text">productive</span><span class="chn-text">高效</span></div>
-                    <div class="suggestion-item" onclick="selectWord('blank9', 'box9', 'energetic')"><span class="eng-text">energetic</span><span class="chn-text">精力充沛</span></div>
-                    <div class="suggestion-item" onclick="enableTyping('blank9', 'box9')"><span class="eng-text">✏️ Type my own words</span><span class="chn-text">自己输入</span></div>
-                </div>
-            </span></span> 
-            than ever! I am <span class="solid-block"><span class="input-group">
-                <input type="text" id="blank10" placeholder="Type / select" onclick="showSuggestions('box10')" readonly>
-                <div class="suggestions-box" id="box10">
-                    <div class="suggestion-item" onclick="selectWord('blank10', 'box10', 'full of vitality')"><span class="eng-text">full of vitality</span><span class="chn-text">充满活力</span></div>
-                    <div class="suggestion-item" onclick="selectWord('blank10', 'box10', 'satisfied with myself')"><span class="eng-text">satisfied with myself</span><span class="chn-text">对自己满意</span></div>
-                    <div class="suggestion-item" onclick="selectWord('blank10', 'box10', 'happy with my progress')"><span class="eng-text">happy with my progress</span><span class="chn-text">对自己的进步感到开心</span></div>
-                    <div class="suggestion-item" onclick="enableTyping('blank10', 'box10')"><span class="eng-text">✏️ Type my own words</span><span class="chn-text">自己输入</span></div>
-                </div>
-            </span>.</span> 
-            I feel like I am in control of my life!
-        </p>
+        <!-- 段落 R -->
+        <div class="para">
+            <strong class="tag">[R]</strong> 
+            <span class="sentence-piece">The reward is fantastic. I feel more</span>
+            <span class="input-wrapper" data-for="blank9">
+                <input type="text" id="blank9" class="input-field" placeholder="Type / select" readonly>
+            </span>
+            <span class="sentence-piece">than ever! I am</span>
+            <span class="input-wrapper" data-for="blank10">
+                <input type="text" id="blank10" class="input-field" placeholder="Type / select" readonly>
+            </span>
+            <span class="punctuation">.</span>
+            <span class="sentence-piece">I feel like I am in control of my life!</span>
+        </div>
     </div>
 
-    <div class="btn-container">
-        <button class="btn-reset" onclick="resetForm()">🔄 Reset</button>
-        <button class="btn-generate" onclick="generateText()">✨ Generate My Post</button>
+    <div class="button-group">
+        <button class="btn btn-reset" id="resetBtn">🔄 Reset</button>
+        <button class="btn btn-generate" id="generateBtn">✨ Generate My Post</button>
     </div>
 
-    <div id="result-area">
-        <h3 style="margin-top:0; color:#27ae60;">Your Post is Ready:</h3>
-        <div id="final-text"></div>
-        <button class="btn-copy" onclick="copyToClipboard()">📋 Copy to Padlet</button>
+    <div id="resultArea" class="result-card">
+        <h3 style="margin:0 0 12px 0; color:#2a6e3a;">✅ Your Post is Ready</h3>
+        <div id="finalText" class="final-post"></div>
+        <button class="btn-copy" id="copyBtn">📋 Copy to Padlet</button>
     </div>
-
 </div>
 
 <script>
-    function hideAllSuggestions() {
-        const boxes = document.querySelectorAll('.suggestions-box');
-        boxes.forEach(box => box.style.display = 'none');
-    }
+    // ---------- 词库配置 (10个空位的独立预设) ----------
+    const suggestionsMap = {
+        blank1: [
+            { eng: "being under high pressure", chn: "承受巨大压力" },
+            { eng: "staying up late", chn: "熬夜" },
+            { eng: "a lack of focus", chn: "注意力不集中" }
+        ],
+        blank2: [
+            { eng: "eating junk food", chn: "吃垃圾食品" },
+            { eng: "sleeping too late", chn: "太晚睡" },
+            { eng: "playing games all night", chn: "通宵打游戏" }
+        ],
+        blank3: [
+            { eng: "being in a bad mood", chn: "心情糟糕" },
+            { eng: "feeling stressed out", chn: "感觉压力大" },
+            { eng: "feeling anxious", chn: "感觉焦虑" }
+        ],
+        blank4: [
+            { eng: "faced a difficult challenge", chn: "面对困难挑战" },
+            { eng: "had exams", chn: "有考试" },
+            { eng: "stayed at home", chn: "待在家" }
+        ],
+        blank5: [
+            { eng: "playing on my phone", chn: "玩手机" },
+            { eng: "eating snacks", chn: "吃零食" },
+            { eng: "burying myself in games", chn: "沉迷游戏" }
+        ],
+        blank6: [
+            { eng: "working out regularly", chn: "经常锻炼" },
+            { eng: "taking up reading", chn: "开始阅读" },
+            { eng: "practicing meditation", chn: "练习冥想" }
+        ],
+        blank7: [
+            { eng: "putting off my homework", chn: "拖延作业" },
+            { eng: "eating junk food", chn: "吃垃圾食品" },
+            { eng: "complaining about life", chn: "抱怨生活" }
+        ],
+        blank8: [
+            { eng: "go jogging", chn: "去慢跑" },
+            { eng: "put away my phone", chn: "放下手机" },
+            { eng: "stick to a healthy schedule", chn: "坚持健康作息" }
+        ],
+        blank9: [
+            { eng: "confident", chn: "自信" },
+            { eng: "productive", chn: "高效" },
+            { eng: "energetic", chn: "精力充沛" }
+        ],
+        blank10: [
+            { eng: "full of vitality", chn: "充满活力" },
+            { eng: "satisfied with myself", chn: "对自己满意" },
+            { eng: "happy with my progress", chn: "为自己的进步开心" }
+        ]
+    };
 
-    function showSuggestions(boxId) {
-        hideAllSuggestions(); 
-        document.getElementById(boxId).style.display = 'block';
-    }
+    // 全局悬浮菜单元素
+    let floatingMenu = null;
+    let activeInput = null;        // 当前激活的输入框DOM
+    let activeInputId = null;      // blank1~blank10
 
-    function selectWord(inputId, boxId, word) {
-        const inputField = document.getElementById(inputId);
-        inputField.value = word;
-        inputField.readOnly = true; 
-        document.getElementById(boxId).style.display = 'none';
-    }
-
-    function enableTyping(inputId, boxId) {
-        const inputField = document.getElementById(inputId);
-        inputField.value = ''; 
-        inputField.readOnly = false; 
-        inputField.focus();
-        inputField.placeholder = "Type here...";
-        document.getElementById(boxId).style.display = 'none';
-    }
-
-    document.addEventListener('click', function(event) {
-        if (!event.target.closest('.input-group')) {
-            hideAllSuggestions();
-        }
-    });
-
-    function generateText() {
-        for(let i=1; i<=10; i++) {
-            if(!document.getElementById('blank'+i).value) {
-                alert("Please fill in all the blanks! (请填完所有空格)");
-                return;
-            }
-        }
-
-        const b1 = document.getElementById('blank1').value;
-        const b2 = document.getElementById('blank2').value;
-        const b3 = document.getElementById('blank3').value;
-        const b4 = document.getElementById('blank4').value;
-        const b5 = document.getElementById('blank5').value;
-        const b6 = document.getElementById('blank6').value;
-        const b7 = document.getElementById('blank7').value;
-        const b8 = document.getElementById('blank8').value;
-        const b9 = document.getElementById('blank9').value;
-        const b10 = document.getElementById('blank10').value;
-
-        const finalText = `I used to suffer from ${b1}. I decided to change my bad habit of ${b2}.\n\nMy cue was ${b3}. Whenever I ${b4}, my routine was ${b5}. I stopped doing that and replaced it with ${b6}. Instead of ${b7}, I now ${b8}.\n\nThe reward is fantastic. I feel more ${b9} than ever! I am ${b10}. I feel like I am in control of my life!`;
-
-        document.getElementById('final-text').innerText = finalText;
-        document.getElementById('result-area').style.display = 'block';
-        
-        document.getElementById('result-area').scrollIntoView({ behavior: 'smooth' });
-    }
-
-    function copyToClipboard() {
-        const text = document.getElementById('final-text').innerText;
-        navigator.clipboard.writeText(text).then(() => {
-            alert("✅ Successfully copied! Now paste it to Padlet! (复制成功，去Padlet粘贴吧！)");
-        }).catch(err => {
-            alert("Failed to copy. Please select the text and copy manually.");
+    // 初始化悬浮菜单DOM
+    function initFloatingMenu() {
+        if (floatingMenu) return;
+        floatingMenu = document.createElement('div');
+        floatingMenu.className = 'floating-suggestions';
+        document.body.appendChild(floatingMenu);
+        // 点击菜单内部不关闭，点击其他地方关闭
+        floatingMenu.addEventListener('click', (e) => {
+            e.stopPropagation();
         });
     }
 
-    function resetForm() {
-        if(confirm("Are you sure you want to clear everything? (确定要清空全部内容吗？)")) {
-            for(let i=1; i<=10; i++) {
-                const input = document.getElementById('blank'+i);
-                input.value = '';
-                input.readOnly = true; 
-                input.placeholder = "Type / select";
-            }
-            document.getElementById('result-area').style.display = 'none';
-            window.scrollTo(0, 0);
+    // 构建菜单内容
+    function renderMenuForInput(inputId, inputElement) {
+        const suggestions = suggestionsMap[inputId];
+        if (!suggestions) return;
+        
+        // 生成菜单html
+        let html = '<ul class="suggest-list">';
+        suggestions.forEach(item => {
+            html += `
+                <li class="suggest-item" data-value="${escapeHtml(item.eng)}">
+                    <span class="suggest-eng">${escapeHtml(item.eng)}</span>
+                    <span class="suggest-chs">${escapeHtml(item.chn)}</span>
+                </li>
+            `;
+        });
+        // 添加自定义输入选项
+        html += `<li class="suggest-item type-custom" data-custom="true">
+                    <span class="suggest-eng">✏️ Type my own words</span>
+                    <span class="suggest-chs">自己输入</span>
+                </li>`;
+        html += '</ul>';
+        floatingMenu.innerHTML = html;
+        
+        // 绑定选项点击事件
+        floatingMenu.querySelectorAll('.suggest-item').forEach(menuItem => {
+            menuItem.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const customFlag = menuItem.getAttribute('data-custom');
+                if (customFlag === 'true') {
+                    // 启用自定义输入
+                    enableTypingForInput(inputElement);
+                } else {
+                    const selectedWord = menuItem.getAttribute('data-value');
+                    if (selectedWord) {
+                        selectWordForInput(inputElement, selectedWord);
+                    }
+                }
+                hideFloatingMenu();
+            });
+        });
+    }
+    
+    function escapeHtml(str) {
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    // 选择单词并填入输入框（只读模式，再次点击可重新下拉）
+    function selectWordForInput(inputEl, word) {
+        inputEl.value = word;
+        inputEl.readOnly = true;
+        inputEl.style.cursor = 'pointer';
+        // 如果之前占位符被修改，恢复原始占位提示
+        if (inputEl.getAttribute('data-orig-placeholder')) {
+            inputEl.placeholder = inputEl.getAttribute('data-orig-placeholder');
+        } else {
+            inputEl.placeholder = "Type / select";
         }
     }
-</script>
+    
+    // 启用自定义打字模式
+    function enableTypingForInput(inputEl) {
+        inputEl.value = '';
+        inputEl.readOnly = false;
+        inputEl.focus();
+        inputEl.placeholder = "Type here...";
+        inputEl.style.cursor = 'text';
+        // 存储原占位符以便reset
+        if (!inputEl.getAttribute('data-orig-placeholder')) {
+            inputEl.setAttribute('data-orig-placeholder', 'Type / select');
+        }
+    }
+    
+    // 显示悬浮菜单，基于输入框位置动态计算
+    function showFloatingMenu(inputElement, inputId) {
+        if (!floatingMenu) initFloatingMenu();
+        activeInput = inputElement;
+        activeInputId = inputId;
+        renderMenuForInput(inputId, inputElement);
+        
+        // 获取输入框相对于视口的位置
+        const rect = inputElement.getBoundingClientRect();
+        const menuWidth = 340;
+        let left = rect.left;
+        // 边界防止超出右边界
+        if (left + menuWidth > window.innerWidth - 10) {
+            left = window.innerWidth - menuWidth - 10;
+        }
+        if (left < 10) left = 10;
+        
+        floatingMenu.style.left = left + 'px';
+        floatingMenu.style.top = (rect.bottom + 6) + 'px';
+        floatingMenu.style.display = 'block';
+        
+        // 确保滚动时不偏离视口 (滚动时自动关闭)
+        const scrollHandler = () => hideFloatingMenu();
+        window.addEventListener('scroll', scrollHandler, { once: true });
+        floatingMenu._scrollClean = scrollHandler;
+    }
+    
+    function hideFloatingMenu() {
+        if (floatingMenu) {
+            floatingMenu.style.display = 'none';
+        }
+        if (activeInput) {
+            // 不清除active引用，但下次重新打开刷新
+        }
+        if (floatingMenu && floatingMenu._scrollClean) {
+            window.removeEventListener('scroll', floatingMenu._scrollClean);
+            delete floatingMenu._scrollClean;
+        }
+    }
+    
+    // 全局点击关闭菜单（但点击输入框自身时不应关闭）
+    document.addEventListener('click', function(e) {
+        // 如果点击的目标是输入框或者其相关wrapper，不关闭（由单独逻辑处理）
+        if (e.target.classList && e.target.classList.contains('input-field')) {
+            // 不主动关闭，稍后由输入框的点击打开新菜单
+            return;
+        }
+        // 点击浮动菜单内部也不关闭
+        if (floatingMenu && floatingMenu.contains(e.target)) {
+            return;
+        }
+        hideFloatingMenu();
+    });
+    
+    // 绑定所有输入框的点击事件：打开对应的预设菜单
+    function bindInputs() {
+        const inputs = document.querySelectorAll('.input-field');
+        inputs.forEach(input => {
+            // 移除旧监听器避免重复
+            input.removeEventListener('click', input._inputClickHandler);
+            const handler = function(ev) {
+                ev.stopPropagation();
+                hideFloatingMenu();  // 关闭之前的
+                const inputId = this.id;  // blank1-10
+                if (!suggestionsMap[inputId]) return;
+                // 显示菜单
+                showFloatingMenu(this, inputId);
+            };
+            input._inputClickHandler = handler;
+            input.addEventListener('click', handler);
+        });
+    }
+    
+    // 重置所有输入框
+    function resetAllFields() {
+        for (let i = 1; i <= 10; i++) {
+            const input = document.getElementById(`blank${i}`);
+            if (input) {
+                input.value = '';
+                input.readOnly = true;
+                input.style.cursor = 'pointer';
+                const originalPlaceholder = input.getAttribute('data-orig-placeholder') || 'Type / select';
+                input.placeholder = originalPlaceholder;
+            }
+        }
+        // 隐藏结果区域
+        const resultDiv = document.getElementById('resultArea');
+        if (resultDiv) resultDiv.style.display = 'none';
+        hideFloatingMenu();
+    }
+    
+    // 生成最终文本
+    function generatePost() {
+        const blanks = [];
+        for (let i = 1; i <= 10; i++) {
+            const input = document.getElementById(`blank${i}`);
+            if (!input) return;
+            const val = input.value.trim();
+            if (val === "") {
+                alert(`⚠️ 请填写第 ${i} 个空格！ (Please fill in blank ${i})`);
+                return;
+            }
+            blanks.push(val);
+        }
+        const [b1, b2, b3, b4, b5, b6, b7, b8, b9, b10] = blanks;
+        const finalText = `I used to suffer from ${b1}. I decided to change my bad habit of ${b2}.
 
+My cue was ${b3}. Whenever I ${b4}, my routine was ${b5}. I stopped doing that and replaced it with ${b6}. Instead of ${b7}, I now ${b8}.
+
+The reward is fantastic. I feel more ${b9} than ever! I am ${b10}. I feel like I am in control of my life!`;
+        
+        const finalDiv = document.getElementById('finalText');
+        finalDiv.innerText = finalText;
+        const resultArea = document.getElementById('resultArea');
+        resultArea.style.display = 'block';
+        resultArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    
+    // 复制到剪贴板
+    async function copyToClipboard() {
+        const textElem = document.getElementById('finalText');
+        if (!textElem.innerText.trim()) {
+            alert("No content to copy. Please generate a post first.");
+            return;
+        }
+        try {
+            await navigator.clipboard.writeText(textElem.innerText);
+            alert("✅ Copied successfully! Paste to Padlet or anywhere!");
+        } catch (err) {
+            alert("❌ Copy failed, you can manually select text and copy.");
+        }
+    }
+    
+    // 初始化所有逻辑
+    function init() {
+        initFloatingMenu();
+        bindInputs();
+        
+        // 按钮事件
+        const resetBtn = document.getElementById('resetBtn');
+        const generateBtn = document.getElementById('generateBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        if (resetBtn) resetBtn.addEventListener('click', resetAllFields);
+        if (generateBtn) generateBtn.addEventListener('click', generatePost);
+        if (copyBtn) copyBtn.addEventListener('click', copyToClipboard);
+        
+        // 保证结果区域初始隐藏
+        document.getElementById('resultArea').style.display = 'none';
+        
+        // 额外修正任何可能出现的不对齐: 强制所有 input 样式行内对齐
+        const style = document.createElement('style');
+        style.textContent = `
+            .input-wrapper {
+                display: inline-flex;
+                align-items: center;
+                vertical-align: middle;
+            }
+            .sentence-piece {
+                display: inline-flex;
+                align-items: center;
+                flex-wrap: wrap;
+            }
+            .punctuation {
+                vertical-align: middle;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    init();
+</script>
 </body>
 </html>
