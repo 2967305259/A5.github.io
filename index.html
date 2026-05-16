@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Easy Builder - My Post</title>
+    <style>
+        /* 核心字体与字号设置调整为 24px */
+        body {
+            font-family: "Times New Roman", Times, serif;
+            font-size: 24px;
+            line-height: 1.8;
+            background-color: #f4f7f6;
+            color: #333;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 1000px; /* 稍微加宽容器，适应不缩短的横线 */
+            margin: 0 auto;
+            background: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        
+        /* --- 核心排版防御区 --- */
+        .solid-block {
+            display: inline-block; 
+            white-space: nowrap; /* 绑定横线与句号，绝不断行 */
+        }
+        .input-group {
+            position: relative;
+            display: inline-block;
+            white-space: normal; 
+        }
+        input[type="text"] {
+            font-family: "Times New Roman", Times, serif;
+            font-size: 24px; /* 字号同步 */
+            color: #c0392b; 
+            border: none;
+            border-bottom: 2px dashed #3498db;
+            background-color: #fcfcfc;
+            padding: 0 5px;
+            margin: 0 2px;
+            width: 280px; /* 恢复并加长横线，确保内容完整显示 */
+            text-align: center;
+            outline: none;
+            cursor: pointer;
+            transition: border-bottom-color 0.3s;
+        }
+        input[type="text"]:focus {
+            border-bottom: 2px solid #e74c3c;
+            background-color: #fff;
+        }
+
+        /* 智能弹窗/下拉菜单样式 */
+        .suggestions-box {
+            display: none; 
+            position: absolute;
+            top: 100%;
+            left: 0; /* 严格左对齐，防止跑偏 */
+            background-color: #fff;
+            border: 1px solid #bdc3c7;
+            border-radius: 8px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+            z-index: 9999; 
+            width: 360px; 
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 5px;
+            text-align: left; 
+        }
+        .suggestion-item {
+            padding: 10px 15px;
+            font-size: 20px; 
+            border-bottom: 1px solid #ecf0f1;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            line-height: 1.4;
+        }
+        .suggestion-item:last-child { border-bottom: none; }
+        .suggestion-item:hover { background-color: #ebf5fb; }
+        .eng-text { font-weight: bold; color: #2980b9; display: block;}
+        .chn-text { font-size: 18px; color: #7f8c8d; }
+
+        /* 按钮与结果区 */
+        .btn-container {
+            text-align: center; margin-top: 40px; display: flex; justify-content: center; gap: 20px;
+        }
+        button {
+            font-family: "Times New Roman", Times, serif; font-size: 22px; padding: 12px 30px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; transition: opacity 0.3s;
+        }
+        button:hover { opacity: 0.8; }
+        .btn-generate { background-color: #27ae60; }
+        .btn-reset { background-color: #95a5a6; }
+        .btn-copy { background-color: #3498db; margin-top: 15px; }
+
+        #result-area {
+            display: none; margin-top: 40px; padding: 25px; background-color: #fdfefe; border: 2px solid #f1c40f; border-radius: 10px;
+        }
+        #final-text { white-space: pre-wrap; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>📝 The Easy Builder - My Post</h2>
+    
+    <div id="builder-form">
+        <p>
+            <strong>[S/T]</strong> I used to suffer from <span class="solid-block"><span class="input-group">
+                <input type="text" id="blank1" placeholder="Type / select" onclick="showSuggestions('box1')" readonly>
+                <div class="suggestions-box" id="box1">
+                    <div class="suggestion-item" onclick="selectWord('blank1', 'box1', 'being under high pressure')"><span class="eng-text">being under high pressure</span><span class="chn-text">承受巨大压力</span></div>
+                    <div class="suggestion-item" onclick="selectWord('blank1', 'box1', 'staying up late')"><span class="eng-text">staying up late</span><span class="chn-text">熬夜</span></div>
+                    <div class="suggestion-item" onclick="selectWord('blank1', 'box1', 'a lack of focus')"><span class="eng-text">a lack of focus</span><span class="chn-text">注意力不集中</span></div>
+                    <div class="suggestion-item" onclick="enableTyping('blank1', 'box1')"><span class="eng-text">✏️ Type my own words</span><span class="chn-text">自己输入</span></div>
+                </div>
+            </span>.</span>
+            <br>
+            I decided to change my bad habit of <span class="solid-block"><span class="input-group">
+                <input type="text" id="blank2" placeholder="Type / select" onclick="showSuggestions('box2')" readonly>
+                <div class="suggestions-box" id="box2">
+                    <div class="suggestion-item" onclick="selectWord('blank2', 'box2', 'eating junk food')"><span class="eng-text">eating junk food</span><span class="chn-text">吃垃圾食品</span></div>
+                    <div class="suggestion-item" onclick="selectWord('blank2', 'box2', 'sleeping too late')"><span class="eng-text">sleeping too late</span><span class="chn-text">太晚睡</span></div>
+                    <div class="suggestion-item" onclick="selectWord('blank2', 'box2', 'playing games all night')"><span class="eng-text">playing games all night</span><span class="chn-text">通宵打游戏</span></div>
+                    <div class="suggestion-item" onclick="enableTyping('blank2', 'box2')"><span class="eng-text">✏️ Type my own words</span><span class="chn-text">自己输入</span></div>
+                </div>
+            </span>.</span>
+        </p>
+
+        <p>
+            <strong>[A]</strong> My cue was <span class="solid-block"><span class="input-group">
+                <input type="text" id="blank3" placeholder="Type / select" onclick="showSuggestions('box3')" readonly>
+                <div class="suggestions-box" id="box3">
+                    <div class="suggestion-item" onclick="selectWord('blank3', 'box3', 'being in a bad mood')"><span class="eng-text">being in a bad mood</span><span class="chn-text">心情糟糕</span></div>
+                    <div class="suggestion-item" onclick="selectWord('blank3', 'box3', 'feeling stressed out')"><span class="eng-text">feeling stressed out</span><span class="chn-text">感觉压力大</span></div>
+                    <div class="suggestion-item" onclick="selectWord('blank3', 'box3', 'feeling anxious')"><span class="eng-text">feeling anxious</span><span class="chn-text">感觉焦虑</span></div>
+                    <div class="suggestion-item" onclick="enableTyping('blank3', 'box3')"><span class="eng-text">✏️ Type my own words</span><span class="chn-text">自己输入</span></div>
+                </div>
+            </span>.</span>
+            <br>
+            Whenever I <span class="solid-block"><span class="input-group">
+                <input type="text" id="blank4" placeholder="Type / select" onclick="showSuggestions('box4')" readonly>
+                <div class="suggestions-box" id="box4">
+                    <div class="suggestion-item" onclick="selectWord('blank4', 'box4', 'faced a difficult challenge')"><span class="eng-text">faced a difficult challenge</span><span class="chn-text">面对困难挑战</span></div>
+                    <div class="suggestion-item" onclick="selectWord('blank4', 'box4', 'had exams')"><span class="eng-text">had exams</span><span class="chn-text">有考试</span></div>
+                    <div class="suggestion-item" onclick="selectWord('blank4', 'box4', 'stayed at home')"><span class="eng-text">stayed at home</span><span class="chn-text">待在家</span></div>
+                    <div class="suggestion-item" onclick="enableTyping('blank4', 'box4')"><span class="eng-text">✏️ Type my own words</span><span class="chn-text">自己输入</span></div>
+                </div>
+            </span>,</span> 
+            my routine was <span class="solid-block"><span class="input-group">
+                <input type="text" id="blank5" placeholder="Type / select" onclick="showSuggestions('box5')" readonly>
+                <div class="suggestions-box" id="box5">
+                    <div class="suggestion-item" onclick="selectWord('blank5', 'box5', 'playing on my phone')"><span class="eng-text">playing on my phone</span><span class="chn-text">玩手机</span></div>
+                    <div class="suggestion-item" onclick="selectWord('blank5', 'box5', 'eating snacks')"><span class="eng-text">eating snacks</span><span class="chn-text">吃零食</span></div>
+                    <div class="suggestion-item" onclick="selectWord('blank5', 'box5', 'burying myself in games')"><span class="eng-text">burying myself in games</span><span class="chn-text">玩电脑</span></div>
+                    <div class="suggestion-item" onclick="enableTyping('blank5', 'box5')"><span class="eng-text">✏️ Type my own words</span><span class="chn-text">自己输入</span></div>
+                </div>
+            </span>.</span>
+            <br>
+            I stopped doing that and replaced it with <span class="solid-block"><span class="input-group">
+                <input type="text" id="blank6" placeholder="Type / select" onclick="showSuggestions('box6')" readonly>
+                <div class="suggestions-box" id="box6">
+                    <div class="suggestion-item" onclick="selectWord('blank6', 'box6', 'working out regularly')"><span class="eng-text">working out regularly</span><span class="chn-text">经常锻炼</span></div>
+                    <div class="suggestion-item" onclick="selectWord('blank6', 'box6', 'taking up reading')"><span class="eng-text">taking up reading</span><span class="chn-text">开始阅读</span></div>
+                    <div class="suggestion-item" onclick="selectWord('blank6', 'box6', 'practicing meditation')"><span class="eng-text">practicing meditation</span><span class="chn-text">练习冥想</span></div>
+                    <div class="suggestion-item" onclick="enableTyping('blank6', 'box6')"><span class="eng-text">✏️ Type my own words</span><span class="chn-text">自己输入</span></div>
+                </div>
+            </span>.</span>
+            <br>
+            Instead of <span class="solid-block"><span class="input-group">
+                <input type="text" id="blank7" placeholder="Type / select" onclick="showSuggestions('box7')" readonly>
+                <div class="suggestions-box" id="box7">
+                    <div class="suggestion-item" onclick="selectWord('blank7', 'box7', 'putting off my homework')"><span class="eng-text">putting off my homework</span><span class="chn-text">推迟作业</span></div>
+                    <div class="suggestion-item" onclick="selectWord('blank7', 'box7', 'eating junk food')"><span class="eng-text">eating junk food</span><span class="chn-text">吃垃圾食品</span></div>
+                    <div class="suggestion-item" onclick="selectWord('blank7', 'box7', 'complaining about life')"><span class="eng-text">complaining about life</span><span class="chn-text">抱怨生活</span></div>
+                    <div class="suggestion-item" onclick="enableTyping('blank7', 'box7')"><span class="eng-text">✏️ Type my own words</span><span class="chn-text">自己输入</span></div>
+                </div>
+            </span>,</span> 
+            I now <span class="solid-block"><span class="input-group">
+                <input type="text" id="blank8" placeholder="Type / select" onclick="showSuggestions('box8')" readonly>
+                <div class="suggestions-box" id="box8">
+                    <div class="suggestion-item" onclick="selectWord('blank8', 'box8', 'go jogging')"><span class="eng-text">go jogging</span><span class="chn-text">去慢跑</span></div>
+                    <div class="suggestion-item" onclick="selectWord('blank8', 'box8', 'put away my phone')"><span class="eng-text">put away my phone</span><span class="chn-text">放下手机</span></div>
+                    <div class="suggestion-item" onclick="selectWord('blank8', 'box8', 'stick to a healthy schedule')"><span class="eng-text">stick to a healthy schedule</span><span class="chn-text">坚持健康的作息</span></div>
+                    <div class="suggestion-item" onclick="enableTyping('blank8', 'box8')"><span class="eng-text">✏️ Type my own words</span><span class="chn-text">自己输入</span></div>
+                </div>
+            </span>.</span>
+        </p>
+
+        <p>
+            <strong>[R]</strong> The reward is fantastic. I feel more <span class="solid-block"><span class="input-group">
+                <input type="text" id="blank9" placeholder="Type / select" onclick="showSuggestions('box9')" readonly>
+                <div class="suggestions-box" id="box9">
+                    <div class="suggestion-item" onclick="selectWord('blank9', 'box9', 'confident')"><span class="eng-text">confident</span><span class="chn-text">自信</span></div>
+                    <div class="suggestion-item" onclick="selectWord('blank9', 'box9', 'productive')"><span class="eng-text">productive</span><span class="chn-text">高效</span></div>
+                    <div class="suggestion-item" onclick="selectWord('blank9', 'box9', 'energetic')"><span class="eng-text">energetic</span><span class="chn-text">精力充沛</span></div>
+                    <div class="suggestion-item" onclick="enableTyping('blank9', 'box9')"><span class="eng-text">✏️ Type my own words</span><span class="chn-text">自己输入</span></div>
+                </div>
+            </span></span> 
+            than ever! I am <span class="solid-block"><span class="input-group">
+                <input type="text" id="blank10" placeholder="Type / select" onclick="showSuggestions('box10')" readonly>
+                <div class="suggestions-box" id="box10">
+                    <div class="suggestion-item" onclick="selectWord('blank10', 'box10', 'full of vitality')"><span class="eng-text">full of vitality</span><span class="chn-text">充满活力</span></div>
+                    <div class="suggestion-item" onclick="selectWord('blank10', 'box10', 'satisfied with myself')"><span class="eng-text">satisfied with myself</span><span class="chn-text">对自己满意</span></div>
+                    <div class="suggestion-item" onclick="selectWord('blank10', 'box10', 'happy with my progress')"><span class="eng-text">happy with my progress</span><span class="chn-text">对自己的进步感到开心</span></div>
+                    <div class="suggestion-item" onclick="enableTyping('blank10', 'box10')"><span class="eng-text">✏️ Type my own words</span><span class="chn-text">自己输入</span></div>
+                </div>
+            </span>.</span> 
+            I feel like I am in control of my life!
+        </p>
+    </div>
+
+    <div class="btn-container">
+        <button class="btn-reset" onclick="resetForm()">🔄 Reset</button>
+        <button class="btn-generate" onclick="generateText()">✨ Generate My Post</button>
+    </div>
+
+    <div id="result-area">
+        <h3 style="margin-top:0; color:#27ae60;">Your Post is Ready:</h3>
+        <div id="final-text"></div>
+        <button class="btn-copy" onclick="copyToClipboard()">📋 Copy to Padlet</button>
+    </div>
+
+</div>
+
+<script>
+    function hideAllSuggestions() {
+        const boxes = document.querySelectorAll('.suggestions-box');
+        boxes.forEach(box => box.style.display = 'none');
+    }
+
+    function showSuggestions(boxId) {
+        hideAllSuggestions(); 
+        document.getElementById(boxId).style.display = 'block';
+    }
+
+    function selectWord(inputId, boxId, word) {
+        const inputField = document.getElementById(inputId);
+        inputField.value = word;
+        inputField.readOnly = true; 
+        document.getElementById(boxId).style.display = 'none';
+    }
+
+    function enableTyping(inputId, boxId) {
+        const inputField = document.getElementById(inputId);
+        inputField.value = ''; 
+        inputField.readOnly = false; 
+        inputField.focus();
+        inputField.placeholder = "Type here...";
+        document.getElementById(boxId).style.display = 'none';
+    }
+
+    document.addEventListener('click', function(event) {
+        if (!event.target.closest('.input-group')) {
+            hideAllSuggestions();
+        }
+    });
+
+    function generateText() {
+        for(let i=1; i<=10; i++) {
+            if(!document.getElementById('blank'+i).value) {
+                alert("Please fill in all the blanks! (请填完所有空格)");
+                return;
+            }
+        }
+
+        const b1 = document.getElementById('blank1').value;
+        const b2 = document.getElementById('blank2').value;
+        const b3 = document.getElementById('blank3').value;
+        const b4 = document.getElementById('blank4').value;
+        const b5 = document.getElementById('blank5').value;
+        const b6 = document.getElementById('blank6').value;
+        const b7 = document.getElementById('blank7').value;
+        const b8 = document.getElementById('blank8').value;
+        const b9 = document.getElementById('blank9').value;
+        const b10 = document.getElementById('blank10').value;
+
+        const finalText = `I used to suffer from ${b1}. I decided to change my bad habit of ${b2}.\n\nMy cue was ${b3}. Whenever I ${b4}, my routine was ${b5}. I stopped doing that and replaced it with ${b6}. Instead of ${b7}, I now ${b8}.\n\nThe reward is fantastic. I feel more ${b9} than ever! I am ${b10}. I feel like I am in control of my life!`;
+
+        document.getElementById('final-text').innerText = finalText;
+        document.getElementById('result-area').style.display = 'block';
+        
+        document.getElementById('result-area').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function copyToClipboard() {
+        const text = document.getElementById('final-text').innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            alert("✅ Successfully copied! Now paste it to Padlet! (复制成功，去Padlet粘贴吧！)");
+        }).catch(err => {
+            alert("Failed to copy. Please select the text and copy manually.");
+        });
+    }
+
+    function resetForm() {
+        if(confirm("Are you sure you want to clear everything? (确定要清空全部内容吗？)")) {
+            for(let i=1; i<=10; i++) {
+                const input = document.getElementById('blank'+i);
+                input.value = '';
+                input.readOnly = true; 
+                input.placeholder = "Type / select";
+            }
+            document.getElementById('result-area').style.display = 'none';
+            window.scrollTo(0, 0);
+        }
+    }
+</script>
+
+</body>
+</html>
